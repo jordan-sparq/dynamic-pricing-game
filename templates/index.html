@@ -76,13 +76,16 @@
     <div id="rolling-value-container">Rolling Value: <span id="rolling-value">0.00</span></div>
     <div id="plot-container"></div>
     <div id="python-code-container">
-        <p>Write Python code to update pricing strategy:</p>
+        <p>Write Python code to update pricing strategy. Please call your function "set_price".</p>
         <textarea id="python-code-textarea" placeholder="Enter Python code here"></textarea>
         <button id="apply-code-button">Apply Code</button>
     </div>
     <div id="python-syntax-error"></div>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/python/python.min.js"></script>
     <script>
         var meanInput = document.getElementById("mean-input");
         var setMeanButton = document.getElementById("set-mean-button");
@@ -90,8 +93,11 @@
         var resetButton = document.getElementById("reset-button");
         var startButton = document.getElementById("start-button");
         var plotContainer = document.getElementById("plot-container");
+        var applyCodeButton = document.getElementById("apply-code-button");
 
         var newMean = parseFloat(meanInput.value);
+        applyCodeButton.disabled = true; // Initially disable the button
+
         var plot = null;
         var stop = false;
         var start = false;
@@ -100,6 +106,11 @@
         var yData = [];
         var cumulativeYData = [];
         var prices = []; // List to keep track of prices being set
+
+        var editor = CodeMirror.fromTextArea(document.getElementById('python-code-textarea'), {
+            mode: 'python',
+            lineNumbers: true,
+        });
 
         function createEmptyPlot() {
             plot = Plotly.newPlot("plot-container", [{
@@ -157,10 +168,8 @@
         }
 
         setMeanButton.addEventListener("click", function() {
-            if (!$("#apply-code-button").prop("disabled")) {
-                newMean = parseFloat(meanInput.value);
-                prices.push(newMean); // Add the price to the list
-            }
+            newMean = parseFloat(meanInput.value);
+            prices.push(newMean); // Add the price to the list
         });
 
         stopButton.addEventListener("click", function() {
@@ -182,9 +191,28 @@
         });
 
         $("#apply-code-button").click(function() {
-            var pythonCode = $("#python-code-textarea").val();
-            yData.push(eval(pythonCode));
-            $("#mean-input").prop("disabled", true);
+            // Get the code from the editor
+            var code = editor.getValue();
+
+            // Send AJAX request to call the function
+            $.ajax({
+                url: "/execute_python_code",
+                type: "POST", // Use POST method
+                contentType: "application/json", // Set Content-Type header
+                data: JSON.stringify({ code: code, xData: xData, yData: yData}), // Convert data to JSON string
+                success: function(response) {
+                    if (response.result) {
+                        yData.push(response.result);
+                        console.log("Function called successfully. Result:", response.result);
+                        // Do something with the result if needed
+                    } else {
+                        console.error("Error calling function:", response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX error:", error);
+                }
+            });
         });
 
         setInterval(updatePlot, 1000);
