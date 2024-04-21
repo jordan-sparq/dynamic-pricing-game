@@ -94,14 +94,14 @@
         var startButton = document.getElementById("start-button");
         var plotContainer = document.getElementById("plot-container");
         var applyCodeButton = document.getElementById("apply-code-button");
+        var isRunningCodeApply = false; // Flag to track whether codeApply is running
 
         var newMean = parseFloat(meanInput.value);
-        applyCodeButton.disabled = true; // Initially disable the button
+        applyCodeButton.disabled = false; // set it enabled by default
 
         var plot = null;
         var stop = false;
         var start = false;
-        var plot = null;
         var xData = [];
         var yData = [];
         var cumulativeYData = [];
@@ -129,6 +129,50 @@
             rollingValue = cumulativeYData.length > 0 ? cumulativeYData[cumulativeYData.length - 1] : 0;
             $("#rolling-value-container").text("Rolling Value: " + rollingValue.toFixed(2));
         }
+
+        function codeApply() {
+            var code = editor.getValue();            
+            // Send AJAX request to call the function
+            $.ajax({
+                url: "/execute_python_code",
+                type: "GET",
+                contentType: "application/json",
+                data: JSON.stringify({ code: code, xData: xData, yData: yData}),
+                success: function(response) {
+                    if (response.result) {
+                        console.log("Function called successfully. Result:", response.result);
+                        return response.result
+                        // Do something with the result if needed
+                    } else {
+                        console.error("Error calling function:", response.error);
+                    }
+                    // Re-enable the button after AJAX request completes
+                    applyCodeButton.disabled = false;
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX error:", error);
+                    // Re-enable the button after AJAX request completes
+                    applyCodeButton.disabled = false;
+                }
+            });
+        }
+
+        setMeanButton.addEventListener("click", function() {
+            newMean = parseFloat(meanInput.value);
+            prices.push(newMean); // Add the price to the list
+            applyCodeButton.disabled = true;
+            isRunningCodeApply = false; // Stop codeApply when set-mean-button is clicked
+        });
+
+        applyCodeButton.addEventListener("click", function () {
+            codeApply(function(result) {
+                newMean =  parseFloat(result); // Update newMean with the result of codeApply
+                prices.push(newMean)
+                applyCodeButton.disabled = false;
+                isRunningCodeApply = true;
+                updatePlot(); // Call updatePlot() after codeApply() is finished
+            });
+        });
 
         createEmptyPlot();
 
@@ -167,11 +211,6 @@
             });
         }
 
-        setMeanButton.addEventListener("click", function() {
-            newMean = parseFloat(meanInput.value);
-            prices.push(newMean); // Add the price to the list
-        });
-
         stopButton.addEventListener("click", function() {
             stop = true;
         });
@@ -188,31 +227,6 @@
             start = false;
             plot = null;
             prices = []; // Reset the list of prices
-        });
-
-        $("#apply-code-button").click(function() {
-            // Get the code from the editor
-            var code = editor.getValue();
-
-            // Send AJAX request to call the function
-            $.ajax({
-                url: "/execute_python_code",
-                type: "POST", // Use POST method
-                contentType: "application/json", // Set Content-Type header
-                data: JSON.stringify({ code: code, xData: xData, yData: yData}), // Convert data to JSON string
-                success: function(response) {
-                    if (response.result) {
-                        yData.push(response.result);
-                        console.log("Function called successfully. Result:", response.result);
-                        // Do something with the result if needed
-                    } else {
-                        console.error("Error calling function:", response.error);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX error:", error);
-                }
-            });
         });
 
         setInterval(updatePlot, 1000);

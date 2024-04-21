@@ -1,7 +1,6 @@
 import random
 import time
-from flask import Flask, render_template, jsonify
-from flask import request
+from flask import Flask, render_template, jsonify, request
 import customers as customers
 import logging
 
@@ -36,6 +35,24 @@ def set_mean(mean):
     global mean_value
     mean_value = mean
     return "Mean set to {:.2f}".format(mean)
+
+@app.route("/execute_python_code", methods=["GET"])
+def execute_python_code():
+    data = request.json  # Parse JSON data from request body
+    code = data.get("code")
+    xData = data.get("xData")
+    yData = data.get("yData")
+    # run python code
+    func_dict = {}
+    exec(code, globals())
+    for name, obj in globals().items():
+        if name == 'set_price':
+            # Add functions to the dictionary
+            func_dict['set_price'] = obj
+
+    result = func_dict['set_price'](xData, yData)
+    # Do something with the code
+    return jsonify({"result": result})
 
 if __name__ == "__main__":
     app.run(debug=True)
