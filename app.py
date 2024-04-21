@@ -6,9 +6,6 @@ import logging
 
 app = Flask(__name__)
 
-# Global variables for data
-mean_value = 0
-
 @app.route("/")
 def index():
     return render_template("index.html")
