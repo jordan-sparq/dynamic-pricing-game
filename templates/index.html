@@ -76,7 +76,13 @@
     <div id="rolling-value-container">Rolling Value: <span id="rolling-value">0.00</span></div>
     <div id="plot-container"></div>
     <div id="python-code-container">
-        <p>Write Python code to update pricing strategy. Please call your function "set_price".</p>
+        <p>
+            Write Python code to update the pricing strategy. Please define your function as "set_price". Must take arguments xData and yData and must return a single value.
+            <br>
+            Example:
+            <br>
+            <code>def set_price(xData, yData):<br>&emsp;return 100</code>
+        </p>        
         <textarea id="python-code-textarea" placeholder="Enter Python code here"></textarea>
         <button id="apply-code-button">Apply Code</button>
     </div>
