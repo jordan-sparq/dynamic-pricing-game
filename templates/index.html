@@ -96,7 +96,7 @@
         var applyCodeButton = document.getElementById("apply-code-button");
         var isRunningCodeApply = false; // Flag to track whether codeApply is running
 
-        var newMean = parseFloat(meanInput.value);
+        var newMean = 0//parseFloat(meanInput.value);
 
         var plot = null;
         var stop = false;
@@ -129,57 +129,53 @@
             $("#rolling-value-container").text("Rolling Value: " + rollingValue.toFixed(2));
         }
 
-        function codeApply() {
-            console.log("INSIDE THIS FUNC")
-            var code = editor.getValue();            
-            // Send AJAX request to call the function
-            $.ajax({
-                url: "/execute_python_code",
-                type: "GET",
-                contentType: "application/json",
-                data: JSON.stringify({ code: code, xData: xData, yData: yData}),
-                success: function(response) {
-                    if (response.result) {
-                        console.log("Function called successfully. Result:", response.result);
-                        newMean = parseFloat(response.result); // Update newMean with the result of codeApply
-                        prices.push(newMean);
-                        isRunningCodeApply = true;
-                        updatePlot(); // Call updatePlot() after codeApply() is finished
-                    } else {
-                        console.error("Error calling function:", response.error);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX error:", error);
-                }
-            });
-        }
-
         setMeanButton.addEventListener("click", function() {
-            newMean = parseFloat(meanInput.value);
-            prices.push(newMean); // Add the price to the list
-            applyCodeButton.disabled = true;
-            isRunningCodeApply = false; // Stop codeApply when set-mean-button is clicked
+            isRunningCodeApply = false;
+            console.log("Set Price"); 
         });
 
         applyCodeButton.addEventListener("click", function () {
-            console.log("Before calling codeApply"); // Add this console log
-            codeApply(function(result) {
-                newMean = parseFloat(result); // Update newMean with the result of codeApply
-                prices.push(newMean)
-                applyCodeButton.disabled = false;
-                isRunningCodeApply = true;
-                updatePlot(); // Call updatePlot() after codeApply() is finished
-            });
-            console.log("After calling codeApply"); // Add this console log
+            isRunningCodeApply = true;
+            console.log("Set Code")
         });
 
         createEmptyPlot();
 
         function updatePlot() {
+
             if (stop || !start) {
                 return;
             }
+
+            if (isRunningCodeApply == true) {
+                console.log("applying code")
+                var code = decodeURIComponent(editor.getValue());
+                console.log(code)
+                // Send AJAX request to call the function
+                $.ajax({
+                    url: "/execute_python_code",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ code: code, xData: xData, yData: yData}),
+                    success: function(response) {
+                        if (response.result) {
+                            console.log("Function called successfully. Result:", response.result);
+                            newMean = parseFloat(response.result); // Update newMean with the result of codeApply
+                            prices.push(newMean);
+                        } else {
+                            console.error("Error calling function:", response.error);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX error:", error);
+                    }
+                });
+            } else if (isRunningCodeApply == false) {
+                console.log("Using manual input price")
+                newMean = parseFloat(meanInput.value);
+                prices.push(newMean); // Add the price to the list
+            }
+
             updateRollingValue();
 
             $.get("/update_plot?mean_value=" + newMean, function(data) {

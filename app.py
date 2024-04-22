@@ -3,6 +3,7 @@ import time
 from flask import Flask, render_template, jsonify, request
 import customers as customers
 import logging
+from urllib.parse import unquote
 
 app = Flask(__name__)
 
@@ -33,15 +34,19 @@ def set_mean(mean):
     mean_value = mean
     return "Mean set to {:.2f}".format(mean)
 
-@app.route("/execute_python_code", methods=["GET"])
+@app.route("/execute_python_code", methods=["POST"])
 def execute_python_code():
     data = request.json  # Parse JSON data from request body
-    code = data.get("code")
+    code = unquote(data.get("code"))
     xData = data.get("xData")
     yData = data.get("yData")
+    print("code = ", code)
+    print("xData = ", xData)
+    print("yData = ", yData)
     # run python code
     func_dict = {}
     exec(code, globals())
+    print("executed code")
     for name, obj in globals().items():
         if name == 'set_price':
             # Add functions to the dictionary
