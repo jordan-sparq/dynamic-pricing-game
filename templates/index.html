@@ -77,11 +77,11 @@
     <div id="plot-container"></div>
     <div id="python-code-container">
         <p>
-            Write Python code to update the pricing strategy. Please define your function as "set_price". Must take arguments xData and yData and must return a single value.
+            Write Python code to update the pricing strategy. Please define your function as "set_price". Must take arguments xData, yData, and prices and must return a single value.
             <br>
             Example:
             <br>
-            <code>def set_price(xData, yData):<br>&emsp;return 100</code>
+            <code>def set_price(xData, yData, prices):<br>&emsp;return 100</code>
         </p>        
         <textarea id="python-code-textarea" placeholder="Enter Python code here"></textarea>
         <button id="apply-code-button">Apply Code</button>
@@ -162,7 +162,7 @@
                     url: "/execute_python_code",
                     type: "POST",
                     contentType: "application/json",
-                    data: JSON.stringify({ code: code, xData: xData, yData: yData}),
+                    data: JSON.stringify({ code: code, xData: xData, yData: yData, prices: prices}),
                     success: function(response) {
                         if (response.result) {
                             console.log("Function called successfully. Result:", response.result);
