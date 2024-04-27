@@ -185,6 +185,7 @@
                 y: [],
                 type: "scatter",
                 mode: "lines+points",
+                name: 'Reward',
             }, {
                 x: [],
                 y: [],
@@ -205,6 +206,7 @@
             newSetPrice = true;
             newApplyCode = false;
             console.log("Set Price");
+            //ONLY WHEN A STRAT IS CHANGED
             if (xData.length > 0) {
                 xData_changemanual.push(xData.slice(-1)[0]);
                 yData_changemanual.push(yData.slice(-1)[0]);
@@ -218,6 +220,7 @@
             newSetPrice = false;
             newApplyCode = true;
             console.log("Set Code");
+            //ONLY WHEN A STRAT IS CHANGED
             if (xData.length > 0) {
                 xData_changepython.push(xData.slice(-1)[0]);
                 yData_changepython.push(yData.slice(-1)[0]);
@@ -246,7 +249,7 @@
             if (stop || !start) {
                 return;
             }
-
+            //PYTHON INTEGRATION
             if (isRunningCodeApply == true) {
                 console.log("applying code")
                 var code = decodeURIComponent(editor.getValue());
@@ -275,23 +278,23 @@
                 newMean = parseFloat(meanInput.value);
                 prices.push(newMean); // Add the price to the list
             }
-
+            //UPDATE PRINT STATEMENTS
             updateRollingValue();
             updateStrategyPrint()
-
+            //UPDATE PLOTS
             $.get("/update_plot?mean_value=" + newMean, function(data) {
                 xData.push(xData.length);
                 yData.push(data.y);
                 cumulativeYData.push(yData.reduce((a, b) => a + b, 0));
-
+                //STOP AT 100 ITERATIONS
                 if (xData.length > 100) {
                     // xData.shift();
                     // yData.shift();
                     stop = true;
                     plot = null;
                 }
-                if (plot) {
-                    var traceLine = {
+              
+                var traceLine = {
                     x: xData,
                     y: yData,
                     type: 'scatter',
@@ -303,8 +306,8 @@
                         color: 'blue' // Adjust color as needed
                     },
                     name: 'Reward',
-                };
-
+                }
+                //STRATEGY SCATTER PLOTS
                 // Define an array to hold the scatter plot traces
                 var strategyTraces = [];
 
@@ -315,7 +318,10 @@
                         var xValue = xData_changemanual[i];
                         var yValue = yData_changemanual[i];
                         var cprice = prices_changemanual[i];
-
+                        var name_str = ''
+                        if (i != 0){
+                            name_str = (i + 1)
+                        }
                         // Create a scatter plot trace for each pair of values
                         var strategyTrace = {
                             x: [xValue],
@@ -329,7 +335,7 @@
                             hoverinfo: 'text',
                             hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}',
                             customdata: [cprice],
-                            name: 'Manual Strategy ' + (i + 1),
+                            name: 'Manual Strategy ' + name_str,
                             showlegend: i === 0,
                         };
 
@@ -347,7 +353,10 @@
                         var xValue = xData_changepython[i];
                         var yValue = yData_changepython[i];
                         var cprice = prices_changepython[i];
-
+                        var name_str = ''
+                        if (i != 0){
+                            name_str = (i + 1)
+                        }
                         // Create a scatter plot trace for each pair of values
                         var strategyTrace = {
                             x: [xValue],
@@ -361,7 +370,7 @@
                             hoverinfo: 'text',
                             hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}',
                             customdata: [cprice],
-                            name: 'Python Strategy ' + (i + 1),
+                            name: 'Python Strategy ' + name_str,
                             showlegend: i === 0,
                         };
                         
@@ -374,20 +383,7 @@
                     xaxis: { title: "Iteration" },
                     yaxis: { title: "Observed Reward", range: [0, 100] }
                 });
-                } else {
-                    plot = Plotly.newPlot("plot-container", [{
-                        x: xData,
-                        y: yData,
-                        type: "scatter",
-                        mode: "lines+points",
-                        hoverinfo: 'text', // Include custom text in the tooltip
-                        hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}', // Custom tooltip template including reward and price
-                        customdata: [prices], // Attach prices as custom data for the tooltip
-                    }], {
-                        xaxis: { title: "Iteration" },
-                        yaxis: { title: "Observed Reward", range: [0,100] }
-                    });
-                }
+                
             });
 
             newSetPrice = false;
