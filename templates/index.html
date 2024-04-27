@@ -3,6 +3,12 @@
 <head>
     <title>Dynamic Pricing Game</title>
     <style>
+
+        #title-container {
+            text-align: center;
+            margin-top: 20px; /* Adjust as needed */
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -28,6 +34,7 @@
             color: #fff;
             cursor: pointer;
             margin-right: 10px;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
@@ -52,6 +59,30 @@
             margin-top: 10px;
             text-align: center;
         }
+        #which-strategy-container {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #task-description {
+            background-color: #121D3D;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            color: #f9f9f9;
+        }
+        #introduction {
+            background-color: #595F77;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: left;
+            color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -68,12 +99,16 @@
             Whether you're studying pricing strategies, experimenting with dynamic pricing models, or simply exploring the dynamics of supply and demand, the Dynamic Pricing Game offers a hands-on experience to deepen your understanding of pricing dynamics in various market scenarios.
         </p>
     </div>
+    <div id="task-description">Your Challenge:  find the optimal pricing strategy for extra leg room seats </div>
     <input type="number" id="mean-input" step="1" value="0">
     <button id="set-mean-button">Set Price</button>
     <button id="stop-button">Stop</button>
     <button id="reset-button">Reset</button>
     <button id="start-button">Start</button>
-    <div id="rolling-value-container">Rolling Value: <span id="rolling-value">0.00</span></div>
+    <!-- <div id="rolling-value-container"> -->
+    <div id="rolling-value-container">Score: <span id="rolling-value">0.00</span></div>
+    <div id="which-strategy-container"> Current Strategy: <span id="which-strategy"> </span></div>
+    <!-- </div> -->
     <div id="plot-container"></div>
     <div id="python-code-container">
         <p>
@@ -93,6 +128,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/python/python.min.js"></script>
     <script>
+        // Function to handle errors and flash the button red
+        function handleCodeError(errorMsg) {
+            // Flash the button red
+            $("#apply-code-button").css("background-color", "red");
+
+            // Print the error message
+            $("#python-syntax-error").text("Error: " + errorMsg);
+        }
+
+        // Reset the button and error message to default
+        function resetButtonAndError() {
+            // Reset button color to default
+            $("#apply-code-button").css("background-color", "#007bff");
+            
+            // Clear error message
+            $("#python-syntax-error").text("");
+        }
+
         var meanInput = document.getElementById("mean-input");
         var setMeanButton = document.getElementById("set-mean-button");
         var stopButton = document.getElementById("stop-button");
@@ -101,6 +154,8 @@
         var plotContainer = document.getElementById("plot-container");
         var applyCodeButton = document.getElementById("apply-code-button");
         var isRunningCodeApply = false; // Flag to track whether codeApply is running
+        var newSetPrice = false; // Flag to track if set price is pressed
+        var newApplyCode = false;
 
         var newMean = 0//parseFloat(meanInput.value);
 
@@ -108,9 +163,16 @@
         var stop = false;
         var start = false;
         var xData = [];
+        var xData_changemanual = [];
+        var yData_changemanual = [];
+        var prices_changemanual = [];
+        var xData_changepython = [];
+        var yData_changepython = [];
+        var prices_changepython = [];
         var yData = [];
         var cumulativeYData = [];
         var prices = []; // List to keep track of prices being set
+        var whichStrategySpan;
 
         var editor = CodeMirror.fromTextArea(document.getElementById('python-code-textarea'), {
             mode: 'python',
@@ -123,27 +185,59 @@
                 y: [],
                 type: "scatter",
                 mode: "lines+points",
-                name: "Gaussian Data"
+            }, {
+                x: [],
+                y: [],
+                type: "scatter",
+                mode: "markers",
+                marker: {
+                    color: 'red',
+                    size: 8
+                },
             }], {
                 xaxis: { title: "Iteration" },
                 yaxis: { title: "Observed Reward", range: [0, 100] }
             });
         }
 
-        function updateRollingValue() {
-            rollingValue = cumulativeYData.length > 0 ? cumulativeYData[cumulativeYData.length - 1] : 0;
-            $("#rolling-value-container").text("Rolling Value: " + rollingValue.toFixed(2));
-        }
-
         setMeanButton.addEventListener("click", function() {
             isRunningCodeApply = false;
-            console.log("Set Price"); 
+            newSetPrice = true;
+            newApplyCode = false;
+            console.log("Set Price");
+            if (xData.length > 0) {
+                xData_changemanual.push(xData.slice(-1)[0]);
+                yData_changemanual.push(yData.slice(-1)[0]);
+                prices_changemanual.push(prices.slice(-1)[0]);
+            }
+            resetButtonAndError();
         });
 
         applyCodeButton.addEventListener("click", function () {
             isRunningCodeApply = true;
-            console.log("Set Code")
+            newSetPrice = false;
+            newApplyCode = true;
+            console.log("Set Code");
+            if (xData.length > 0) {
+                xData_changepython.push(xData.slice(-1)[0]);
+                yData_changepython.push(yData.slice(-1)[0]);
+                prices_changepython.push(prices.slice(-1)[0]);
+            }
+            resetButtonAndError(); // Reset button color and error message before applying code
         });
+
+        function updateRollingValue() {
+            rollingValue = cumulativeYData.length > 0 ? cumulativeYData[cumulativeYData.length - 1] : 0;
+            $("#rolling-value-container").html("Rolling Value: " + rollingValue.toFixed(0) + "<br>");
+        }
+        function updateStrategyPrint() {
+            if (isRunningCodeApply == false){
+                var strategy = "Manual"
+            } else {
+                var strategy = "Python"
+            }
+            $("#which-strategy-container").html("Current Strategy: " + strategy + "<br>");
+        }
 
         createEmptyPlot();
 
@@ -169,11 +263,11 @@
                             newMean = parseFloat(response.result); // Update newMean with the result of codeApply
                             prices.push(newMean);
                         } else {
-                            console.error("Error calling function:", response.error);
+                            handleCodeError(response.error); // Handle error
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("AJAX error:", error);
+                        handleCodeError(error); // Handle error
                     }
                 });
             } else if (isRunningCodeApply == false) {
@@ -183,34 +277,120 @@
             }
 
             updateRollingValue();
+            updateStrategyPrint()
 
             $.get("/update_plot?mean_value=" + newMean, function(data) {
                 xData.push(xData.length);
                 yData.push(data.y);
                 cumulativeYData.push(yData.reduce((a, b) => a + b, 0));
 
-                if (xData.length > 500) {
-                    xData.shift();
-                    yData.shift();
+                if (xData.length > 100) {
+                    // xData.shift();
+                    // yData.shift();
+                    stop = true;
+                    plot = null;
                 }
                 if (plot) {
-            Plotly.update("plot-container", {
-                x: [xData],
-                y: [yData],
-            });
-            } else {
-                plot = Plotly.newPlot("plot-container", [{
+                    var traceLine = {
                     x: xData,
                     y: yData,
-                    type: "scatter",
-                    mode: "lines+points",
-                    name: "Gaussian Data"
-                }], {
+                    type: 'scatter',
+                    mode: 'lines+points',
+                    hoverinfo: 'text',
+                    hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}',
+                    customdata: prices,
+                    line: {
+                        color: 'blue' // Adjust color as needed
+                    },
+                    name: 'Reward',
+                };
+
+                // Define an array to hold the scatter plot traces
+                var strategyTraces = [];
+
+                // Check if xData_changemanual is an array and not empty
+                if (Array.isArray(xData_changemanual) && xData_changemanual.length > 0) {
+                    // Iterate over each value in xData_changemanual and yData_changemanual
+                    for (var i = 0; i < xData_changemanual.length; i++) {
+                        var xValue = xData_changemanual[i];
+                        var yValue = yData_changemanual[i];
+                        var cprice = prices_changemanual[i];
+
+                        // Create a scatter plot trace for each pair of values
+                        var strategyTrace = {
+                            x: [xValue],
+                            y: [yValue],
+                            type: 'scatter',
+                            mode: 'markers',
+                            marker: {
+                                color: 'red', // Adjust color as needed
+                                size: 8
+                            },
+                            hoverinfo: 'text',
+                            hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}',
+                            customdata: [cprice],
+                            name: 'Manual Strategy ' + (i + 1),
+                            showlegend: i === 0,
+                        };
+
+                        strategyTraces.push(strategyTrace); // Add the trace to the array of scatter plot traces
+                    }
+                }
+
+                // Define an array to hold the scatter plot traces
+                var strategyTraces_python = [];
+
+                // Check if xData_changemanual is an array and not empty
+                if (Array.isArray(xData_changepython) && xData_changepython.length > 0) {
+                    // Iterate over each value in xData_changemanual and yData_changemanual
+                    for (var i = 0; i < xData_changepython.length; i++) {
+                        var xValue = xData_changepython[i];
+                        var yValue = yData_changepython[i];
+                        var cprice = prices_changepython[i];
+
+                        // Create a scatter plot trace for each pair of values
+                        var strategyTrace = {
+                            x: [xValue],
+                            y: [yValue],
+                            type: 'scatter',
+                            mode: 'markers',
+                            marker: {
+                                color: 'green', // Adjust color as needed
+                                size: 8
+                            },
+                            hoverinfo: 'text',
+                            hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}',
+                            customdata: [cprice],
+                            name: 'Python Strategy ' + (i + 1),
+                            showlegend: i === 0,
+                        };
+                        
+                        strategyTraces_python.push(strategyTrace); // Add the trace to the array of scatter plot traces
+                    }
+                }
+
+                // Add both traces to the plot
+                Plotly.newPlot("plot-container", [traceLine, ...strategyTraces, ...strategyTraces_python], {
                     xaxis: { title: "Iteration" },
-                    yaxis: { title: "Observed Reward", range: [0,100] }
+                    yaxis: { title: "Observed Reward", range: [0, 100] }
                 });
-            }
+                } else {
+                    plot = Plotly.newPlot("plot-container", [{
+                        x: xData,
+                        y: yData,
+                        type: "scatter",
+                        mode: "lines+points",
+                        hoverinfo: 'text', // Include custom text in the tooltip
+                        hovertemplate: 'Reward: %{y:.2f}<br>Price: %{customdata}', // Custom tooltip template including reward and price
+                        customdata: [prices], // Attach prices as custom data for the tooltip
+                    }], {
+                        xaxis: { title: "Iteration" },
+                        yaxis: { title: "Observed Reward", range: [0,100] }
+                    });
+                }
             });
+
+            newSetPrice = false;
         }
 
         stopButton.addEventListener("click", function() {
@@ -229,9 +409,11 @@
             start = false;
             plot = null;
             prices = []; // Reset the list of prices
+            resetButtonAndError(); // Reset button color and error message
         });
 
         setInterval(updatePlot, 1000);
+
     </script>
-</body>
+</body> 
 </html>
