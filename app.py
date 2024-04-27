@@ -14,10 +14,11 @@ def index():
 
 @app.route("/update_plot", methods=["GET"])
 def update_plot():
+    # read real time data from app
     price_set = float(request.args.get("mean_value", 0))
     xData = json.loads(request.args.get("xData", "[]"))  # Parse xData from request parameters
     yData = json.loads(request.args.get("yData", "[]")) 
-    print(xData)
+
     # global mean_value
     x = time.time() * 1000  # x-axis: time in milliseconds. Doesnt get used
     

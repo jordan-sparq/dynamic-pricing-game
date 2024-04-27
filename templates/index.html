@@ -411,6 +411,15 @@
             plot = null;
             prices = []; // Reset the list of prices
             resetButtonAndError(); // Reset button color and error message
+            // Clear the plot by updating it with empty data
+            Plotly.newPlot("plot-container", [], {
+                xaxis: { title: "Iteration" },
+                yaxis: { title: "Observed Reward", range: [0, 100] }
+            });
+            xData_changemanual = [];
+            yData_changemanual = [];
+            xData_changepython = [];
+            yData_changepython = [];
         });
 
         setInterval(updatePlot, 1000);
