@@ -282,7 +282,12 @@
             updateRollingValue();
             updateStrategyPrint()
             //UPDATE PLOTS
-            $.get("/update_plot?mean_value=" + newMean, function(data) {
+            
+            $.get("/update_plot", {
+                mean_value: newMean,
+                xData: JSON.stringify(xData),
+                yData: JSON.stringify(yData)
+            }, function(data) {
                 xData.push(xData.length);
                 yData.push(data.y);
                 cumulativeYData.push(yData.reduce((a, b) => a + b, 0));

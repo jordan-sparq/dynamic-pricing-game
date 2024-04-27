@@ -4,6 +4,7 @@ from flask import Flask, render_template, jsonify, request
 import customers as customers
 import logging
 from urllib.parse import unquote
+import json
 
 app = Flask(__name__)
 
@@ -14,6 +15,9 @@ def index():
 @app.route("/update_plot", methods=["GET"])
 def update_plot():
     price_set = float(request.args.get("mean_value", 0))
+    xData = json.loads(request.args.get("xData", "[]"))  # Parse xData from request parameters
+    yData = json.loads(request.args.get("yData", "[]")) 
+    print(xData)
     # global mean_value
     x = time.time() * 1000  # x-axis: time in milliseconds. Doesnt get used
     
