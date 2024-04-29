@@ -231,17 +231,6 @@
 
         </p>      
         <textarea id="python-code-textarea" placeholder="Enter Python code here">
-def set_price(xData, yData, prices):
-    """
-    Your pricing strategy logic goes here
-    For demonstration purposes, let's set a static price of £30
-
-    :param xData: [List[int]] iteration of game
-    :param yData: [List[float]] observed value at price
-    :param prices: [list[float]] prices tried at each iteration
-    :return price: must be mapped to a float
-    """
-    return float(20)
         </textarea>
     </div>
     <button id="apply-code-button">Apply Code</button>
@@ -358,7 +347,7 @@ def set_price(xData, yData, prices):
 
         function updateRollingValue() {
             rollingValue = cumulativeYData.length > 0 ? cumulativeYData[cumulativeYData.length - 1] : 0;
-            $("#rolling-value-container").html("Rolling Value: " + rollingValue.toFixed(0) + "<br>");
+            $("#rolling-value-container").html("Score: " + rollingValue.toFixed(0) + "<br>");
         }
         function updateStrategyPrint() {
             if (isRunningCodeApply == false){
