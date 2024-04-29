@@ -3,6 +3,34 @@
 <head>
     <title>Dynamic Pricing Game</title>
     <style>
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px; /* Adjust the width as needed */
+            background-color: #595F77;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px; /* Adjust the left margin to center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
         #png-logo {
             height: 100px; 
             margin-right: 5px; /* Add some space between the logo and the title */
@@ -98,15 +126,18 @@
             margin-top: 10px;
         }
         #task-description {
-            background-color: #007bff;
+            background-color: #f9f9f9;
             border-radius: 4px;
             padding: 10px;
             margin-top: 10px;
-            text-align: left;
-            color: #f9f9f9;
-            flex: 1; /* Make the first container flexible */
+            text-align: center; /* Align the text in the center horizontally */
+            display: flex; /* Use flexbox */
+            align-items: center; /* Center the text vertically */
+            color: #121D3D;
+            flex: 1; /* Make the container flexible */
             margin-right: 10px; /* Add some spacing between the containers */
-            border: 2px solid #fff; /* Add a border to the second container */
+            border: 2px solid #007bff; /* Add a border to the second container */
+
         }
 
         #task-description2 {
@@ -142,7 +173,9 @@
     <h1>
         Dynamic Pricing Game
         <div id="pdf-logo-container">
-            <img id="png-logo" src="../static/02-Lockup-Horizontal.png" alt="png Logo">
+            <a href="https://www.datasparq.ai/" target="_blank">
+                <img id="png-logo" src="../static/02-Lockup-Horizontal.png" alt="png Logo">
+            </a>
         </div>
     </h1>
     <div id="introduction">
@@ -159,15 +192,27 @@
     </div>
     <div class="container">
         <div id="task-description"><strong>Your Challenge</strong>:</div>
-        <div id="task-description2">Find the <strong>optimal pricing strategy</strong> for <strong>extra leg room seats</strong>. The business would like you to price between <strong>£5 and £60</strong>.</div>
+        <div id="task-description2">Find the <strong>optimal pricing strategy</strong> for <strong>extra leg room seats</strong>. <br>The business would like you to price between <strong>£5 and £60</strong>. You have <strong> 100 iterations</strong> to maximise your score!</div>
     </div>
 
     <div class="container">
         <input type="number" id="mean-input" step="1" value="0">
-        <button id="set-mean-button">Set Price</button>
-        <button id="stop-button">Stop</button>
-        <button id="reset-button">Reset</button>
-        <button id="start-button">Start</button>
+        <button id="set-mean-button" class="tooltip">
+            Set Price
+            <span class="tooltiptext">Set the price</span>
+        </button>
+        <button id="stop-button" class="tooltip">
+            Stop
+            <span class="tooltiptext">Stop the simulation</span>
+        </button>
+        <button id="reset-button" class="tooltip">
+            Reset
+            <span class="tooltiptext">Reset the simulation</span>
+        </button>
+        <button id="start-button" class="tooltip">
+            Start
+            <span class="tooltiptext">Start the simulation</span>
+        </button>
         <!-- <div id="rolling-value-container"> -->
         <div id="rolling-value-container">Score: <span id="rolling-value">0</span></div>
     </div>
@@ -176,10 +221,9 @@
     <div id="plot-container"></div>
     <div id="python-code-container">
         <div id="code-description">
-            Write Python code to update the pricing strategy. Please define your function as "set_price". Must take arguments xData, yData, and prices and must return a single value.
+            Write your own Python strategy!
             <br>
-            Example:
-            <br>
+            Please define your function using the example as a template. Click "Apply Code" to apply your new strategy. 
         </div>
     </div>
     <div> 
