@@ -3,7 +3,20 @@
 <head>
     <title>Dynamic Pricing Game</title>
     <style>
+        #png-logo {
+            height: 100px; 
+            margin-right: 5px; /* Add some space between the logo and the title */
+            margin-left: 500px;
+        }
 
+        #pdf-logo-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 20px; /* Adjust margins as needed */
+            margin-bottom: 20px;
+            margin-top: 5px;
+        }
         #title-container {
             text-align: center;
             margin-top: 20px; /* Adjust as needed */
@@ -44,12 +57,16 @@
         }
         #python-code-container {
             margin-top: 20px;
+            padding: 4px;
+            margin-top: 10px;
+            
         }
         #python-code-textarea {
             width: 100%;
-            height: 200px; /* Adjust the height as needed */
+            /* height: 50px; Adjust the height as needed */
             padding: 8px;
             border-radius: 4px;
+            margin-top: 20px; /* Updated margin-top value */
             border: 1px solid #ccc;
         }
         #rolling-value-container {
@@ -58,24 +75,60 @@
             padding: 10px;
             margin-top: 10px;
             text-align: center;
+            border: 2px solid #0056b3; /* Add a border to the second container */
         }
         #which-strategy-container {
             background-color: #f9f9f9;
             border-radius: 4px;
-            padding: 10px;
+            padding: 5px;
             margin-top: 10px;
             text-align: center;
         }
 
+        .container {
+            display: flex;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #mean-input {
+            margin-right: 10px; /* Add space between the input and the first button */
+            width: 10%;
+            text-align: center;
+            height: 25px;
+            margin-top: 10px;
+        }
         #task-description {
-            background-color: #121D3D;
+            background-color: #007bff;
             border-radius: 4px;
             padding: 10px;
             margin-top: 10px;
-            text-align: center;
+            text-align: left;
             color: #f9f9f9;
+            flex: 1; /* Make the first container flexible */
+            margin-right: 10px; /* Add some spacing between the containers */
+            border: 2px solid #fff; /* Add a border to the second container */
+        }
+
+        #task-description2 {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: left;
+            color: #121D3D;
+            flex: 9; /* Make the second container twice as wide */
+            border: 2px solid #007bff; /* Add a border to the second container */
         }
         #introduction {
+            background-color: #595F77;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: left;
+            color: #f9f9f9;
+        }
+
+        #code-description {
             background-color: #595F77;
             border-radius: 4px;
             padding: 10px;
@@ -86,7 +139,12 @@
     </style>
 </head>
 <body>
-    <h1>Dynamic Pricing Game</h1>
+    <h1>
+        Dynamic Pricing Game
+        <div id="pdf-logo-container">
+            <img id="png-logo" src="../static/02-Lockup-Horizontal.png" alt="png Logo">
+        </div>
+    </h1>
     <div id="introduction">
         <p>Welcome to the Dynamic Pricing Game!</p>
         <p>
@@ -99,28 +157,50 @@
             Whether you're studying pricing strategies, experimenting with dynamic pricing models, or simply exploring the dynamics of supply and demand, the Dynamic Pricing Game offers a hands-on experience to deepen your understanding of pricing dynamics in various market scenarios.
         </p>
     </div>
-    <div id="task-description">Your Challenge:  find the optimal pricing strategy for extra leg room seats </div>
-    <input type="number" id="mean-input" step="1" value="0">
-    <button id="set-mean-button">Set Price</button>
-    <button id="stop-button">Stop</button>
-    <button id="reset-button">Reset</button>
-    <button id="start-button">Start</button>
-    <!-- <div id="rolling-value-container"> -->
-    <div id="rolling-value-container">Score: <span id="rolling-value">0.00</span></div>
-    <div id="which-strategy-container"> Current Strategy: <span id="which-strategy"> </span></div>
+    <div class="container">
+        <div id="task-description"><strong>Your Challenge</strong>:</div>
+        <div id="task-description2">Find the <strong>optimal pricing strategy</strong> for <strong>extra leg room seats</strong>. The business would like you to price between <strong>£5 and £60</strong>.</div>
+    </div>
+
+    <div class="container">
+        <input type="number" id="mean-input" step="1" value="0">
+        <button id="set-mean-button">Set Price</button>
+        <button id="stop-button">Stop</button>
+        <button id="reset-button">Reset</button>
+        <button id="start-button">Start</button>
+        <!-- <div id="rolling-value-container"> -->
+        <div id="rolling-value-container">Score: <span id="rolling-value">0</span></div>
+    </div>
+    <!-- <div id="which-strategy-container"> Current Strategy: <span id="which-strategy"> </span></div> -->
     <!-- </div> -->
     <div id="plot-container"></div>
     <div id="python-code-container">
-        <p>
+        <div id="code-description">
             Write Python code to update the pricing strategy. Please define your function as "set_price". Must take arguments xData, yData, and prices and must return a single value.
             <br>
             Example:
             <br>
-            <code>def set_price(xData, yData, prices):<br>&emsp;return 100</code>
-        </p>        
-        <textarea id="python-code-textarea" placeholder="Enter Python code here"></textarea>
-        <button id="apply-code-button">Apply Code</button>
+        </div>
     </div>
+    <div> 
+        <p>
+
+        </p>      
+        <textarea id="python-code-textarea" placeholder="Enter Python code here">
+def set_price(xData, yData, prices):
+    """
+    Your pricing strategy logic goes here
+    For demonstration purposes, let's set a static price of £30
+
+    :param xData: [List[int]] iteration of game
+    :param yData: [List[float]] observed value at price
+    :param prices: [list[float]] prices tried at each iteration
+    :return price: must be mapped to a float
+    """
+    return float(20)
+        </textarea>
+    </div>
+    <button id="apply-code-button">Apply Code</button>
     <div id="python-syntax-error"></div>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -186,6 +266,7 @@
                 type: "scatter",
                 mode: "lines+points",
                 name: 'Reward',
+                showlegend: true
             }, {
                 x: [],
                 y: [],
@@ -195,6 +276,8 @@
                     color: 'red',
                     size: 8
                 },
+                name: 'Strategy',
+                showlegend: true
             }], {
                 xaxis: { title: "Iteration" },
                 yaxis: { title: "Observed Reward", range: [0, 100] }
@@ -266,11 +349,13 @@
                             newMean = parseFloat(response.result); // Update newMean with the result of codeApply
                             prices.push(newMean);
                         } else {
-                            handleCodeError(response.error); // Handle error
+                            console.log("code error")
+                            // handleCodeError(response.error); // Handle error
                         }
                     },
                     error: function(xhr, status, error) {
-                        handleCodeError(error); // Handle error
+                        console.log("code error")
+                        // handleCodeError(error); // Handle error
                     }
                 });
             } else if (isRunningCodeApply == false) {
@@ -280,7 +365,7 @@
             }
             //UPDATE PRINT STATEMENTS
             updateRollingValue();
-            updateStrategyPrint()
+            // updateStrategyPrint()
             //UPDATE PLOTS
             
             $.get("/update_plot", {
@@ -412,10 +497,11 @@
             prices = []; // Reset the list of prices
             resetButtonAndError(); // Reset button color and error message
             // Clear the plot by updating it with empty data
-            Plotly.newPlot("plot-container", [], {
-                xaxis: { title: "Iteration" },
-                yaxis: { title: "Observed Reward", range: [0, 100] }
-            });
+            // Plotly.newPlot("plot-container", [], {
+            //     xaxis: { title: "Iteration" },
+            //     yaxis: { title: "Observed Reward", range: [0, 100] }
+            // });
+            createEmptyPlot();
             xData_changemanual = [];
             yData_changemanual = [];
             xData_changepython = [];
