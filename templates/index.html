@@ -358,7 +358,7 @@ def set_price(xData, yData, prices):
 
         function updateRollingValue() {
             rollingValue = cumulativeYData.length > 0 ? cumulativeYData[cumulativeYData.length - 1] : 0;
-            $("#rolling-value-container").html("Rolling Value: " + rollingValue.toFixed(0) + "<br>");
+            $("#rolling-value-container").html("Score: " + rollingValue.toFixed(0) + "<br>");
         }
         function updateStrategyPrint() {
             if (isRunningCodeApply == false){
