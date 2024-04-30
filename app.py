@@ -32,7 +32,7 @@ def update_plot():
     if price_set == 0:
         reward = 0
     # z is a placeholder to put the RL reward
-    return jsonify(x=x, y=reward, z=1)
+    return jsonify(x=x, y=reward, n_customers=n_customers)
 
 @app.route("/set_mean/<float:mean>", methods=["GET"])
 def set_mean(mean):
