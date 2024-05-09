@@ -83,7 +83,7 @@
         #plot-container {
             margin-top: 20px;
         }
-        #python-code-container {
+       #python-code-container {
             margin-top: 20px;
             padding: 4px;
             margin-top: 10px;
@@ -226,50 +226,49 @@
             Please define your function using the example as a template. Click "Apply Code" to apply your new strategy. 
         </div>
     </div>
-    <div> 
-        <p>
 
-        </p>      
-        <textarea id="python-code-textarea" placeholder="Enter Python code here">
-def set_price(xData, yData, prices):
-    """
-    Your pricing strategy logic goes here
-    For demonstration purposes, let's set a static price of £30
-
-    :param xData: [List[int]] iteration of game
-    :param yData: [List[float]] observed value at price
-    :param prices: [list[float]] prices tried at each iteration
-    :return price: must be mapped to a float
-    """
-    return float(20)
-        </textarea>
-    </div>
-    <button id="apply-code-button">Apply Code</button>
-    <div id="python-syntax-error"></div>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/python/python.min.js"></script>
+
+    <h1>Python Code Editor</h1>
+    <textarea id="code" rows="10" cols="50"></textarea><br>
+    <button id="apply-code-button" onclick="runPython()">Run Python</button><br>
+    <h2>Output</h2>
+    <pre id="output"></pre>
+
     <script>
-        // Function to handle errors and flash the button red
-        function handleCodeError(errorMsg) {
-            // Flash the button red
-            $("#apply-code-button").css("background-color", "red");
+        async function runPython() {
+            const code = document.getElementById("code").value;
+            const outputElement = document.getElementById("output");
 
-            // Print the error message
-            $("#python-syntax-error").text("Error: " + errorMsg);
+            try {
+                // Send a POST request to the Flask server
+                const response = await fetch('/execute_python_code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // Display the output
+                if (data.success) {
+                    outputElement.textContent = data.output;
+                } else {
+                    outputElement.textContent = "Error: " + data.output;
+                }
+            } catch (error) {
+                // Display error if any
+                outputElement.textContent = error.toString();
+            }
         }
-
-        // Reset the button and error message to default
-        function resetButtonAndError() {
-            // Reset button color to default
-            $("#apply-code-button").css("background-color", "#007bff");
-            
-            // Clear error message
-            $("#python-syntax-error").text("");
-        }
-
+        
         var meanInput = document.getElementById("mean-input");
         var setMeanButton = document.getElementById("set-mean-button");
         var stopButton = document.getElementById("stop-button");
@@ -298,10 +297,10 @@ def set_price(xData, yData, prices):
         var prices = []; // List to keep track of prices being set
         var whichStrategySpan;
 
-        var editor = CodeMirror.fromTextArea(document.getElementById('python-code-textarea'), {
-            mode: 'python',
-            lineNumbers: true,
-        });
+        // var editor = CodeMirror.fromTextArea(document.getElementById('python-code-textarea'), {
+        //     mode: 'python',
+        //     lineNumbers: true,
+        // });
 
         function createEmptyPlot() {
             plot = Plotly.newPlot("plot-container", [{
@@ -339,7 +338,7 @@ def set_price(xData, yData, prices):
                 yData_changemanual.push(yData.slice(-1)[0]);
                 prices_changemanual.push(prices.slice(-1)[0]);
             }
-            resetButtonAndError();
+            //resetButtonAndError();
         });
 
         applyCodeButton.addEventListener("click", function () {
@@ -353,7 +352,7 @@ def set_price(xData, yData, prices):
                 yData_changepython.push(yData.slice(-1)[0]);
                 prices_changepython.push(prices.slice(-1)[0]);
             }
-            resetButtonAndError(); // Reset button color and error message before applying code
+            //resetButtonAndError(); // Reset button color and error message before applying code
         });
 
         function updateRollingValue() {
@@ -539,7 +538,6 @@ def set_price(xData, yData, prices):
             start = false;
             plot = null;
             prices = []; // Reset the list of prices
-            resetButtonAndError(); // Reset button color and error message
             // Clear the plot by updating it with empty data
             // Plotly.newPlot("plot-container", [], {
             //     xaxis: { title: "Iteration" },
