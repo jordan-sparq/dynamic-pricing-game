@@ -1,6 +1,8 @@
 import random
 import time
 from flask import Flask, render_template, jsonify, request
+from RestrictedPython import compile_restricted_function, safe_builtins, compile_restricted
+from RestrictedPython.Eval import default_guarded_getiter
 import customers as customers
 import logging
 from urllib.parse import unquote
@@ -40,28 +42,52 @@ def set_mean(mean):
     mean_value = mean
     return "Mean set to {:.2f}".format(mean)
 
+# Define a whitelist of safe modules/packages
+safe_modules_whitelist = {
+    'math': None,   # Allow the entire math module
+    'random': None, # Allow the entire random module
+    'numpy': None,
+    'pandas': None,
+    # Add other safe modules/packages as needed
+}
+
 @app.route("/execute_python_code", methods=["POST"])
 def execute_python_code():
     data = request.json  # Parse JSON data from request body
-    code = unquote(data.get("code"))
+    code = data.get("code")
     xData = data.get("xData")
     yData = data.get("yData")
     prices = data.get("prices")
-    print("code = ", code)
-    print("xData = ", xData)
-    print("yData = ", yData)
-    # run python code
-    func_dict = {}
-    exec(code, globals())
-    print("executed code")
-    for name, obj in globals().items():
-        if name == 'set_price':
-            # Add functions to the dictionary
-            func_dict['set_price'] = obj
+    
+    # Remove print statements from the code
+    code = remove_print_statements(code)
 
-    result = func_dict['set_price'](xData, yData, prices)
-    # Do something with the code
-    return jsonify({"result": result})
+    # Compile the restricted function
+    restricted_code = compile_restricted(code, '<inline>', 'exec')
+    
+    # Execute the restricted function in a sandboxed environment
+    try:
+        restricted_globals = {'__builtins__': safe_builtins}
+        restricted_globals.update(safe_modules_whitelist) # Extend with safe modules whitelist
+        exec(restricted_code, restricted_globals)
+        
+        if 'set_price' in restricted_globals:
+            set_price_func = restricted_globals['set_price']
+            result = set_price_func(xData, yData, prices)
+            return jsonify({"result": result})
+        else:
+            return jsonify({"error": "Function 'set_price' not found in the code"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+def remove_print_statements(code):
+    # Remove print statements from the code
+    lines = code.split('\n')
+    code_lines = []
+    for line in lines:
+        if 'print' not in line:
+            code_lines.append(line)
+    return '\n'.join(code_lines)
 
 if __name__ == "__main__":
     app.run(debug=True)
